@@ -1,18 +1,16 @@
 // stops.js
-// This file will hold the REAL nationwide truck stop list.
-// Replace the example entries with real chain data before deploying.
+// Holds the truck stop list for BreakPoint30
 
 const TRUCK_STOPS = [
-  // Example structure ONLY — do NOT deploy with these.
-  // {
-  //   id: "loves-joplin-mo-1",
-  //   brand: "Loves",
-  //   name: "Love's Travel Stop",
-  //   city: "Joplin",
-  //   state: "MO",
-  //   lat: 37.0842,
-  //   lon: -94.5133,
-  // },
+  {
+    id: "loves-lancaster-oh",
+    brand: "Loves",
+    name: "Love's Travel Stop",
+    city: "Lancaster",
+    state: "OH",
+    lat: 39.74065,
+    lon: -82.61237,
+  },
 ];
 
 module.exports = TRUCK_STOPS;
