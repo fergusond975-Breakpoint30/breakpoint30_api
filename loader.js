@@ -1,37 +1,35 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import express from "express";
+import cors from "cors";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const app = express();
+app.use(cors());
 
-// Helper to load JSON safely
-function loadJSON(fileName) {
-  try {
-    const filePath = path.join(__dirname, "data", fileName);
-    const raw = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error("Failed to load", fileName, err.message);
-    return [];
+const PORT = process.env.PORT || 3000;
+
+// Temporary: inline "live" stops (no files)
+const STOPS = [
+  {
+    id: "demo-1",
+    name: "Demo Truck Stop 1",
+    brand: "Independent",
+    lat: 39.0,
+    lon: -82.0,
+    state: "OH"
+  },
+  {
+    id: "demo-2",
+    name: "Demo Truck Stop 2",
+    brand: "Loves",
+    lat: 38.9,
+    lon: -81.9,
+    state: "OH"
   }
-}
+];
 
-// Load all datasets
-export function loadAllStops() {
-  const nationwide = loadJSON("nationwide.json");
-  const loves = loadJSON("loves.json");
-  const pilotfj = loadJSON("pilotfj.json");
-  const tapetro = loadJSON("tapetro.json");
-  const independents = loadJSON("independents.json");
-  const restareas = loadJSON("restareas.json");
+app.get("/stops", (req, res) => {
+  res.json(STOPS);
+});
 
-  return [
-    ...nationwide,
-    ...loves,
-    ...pilotfj,
-    ...tapetro,
-    ...independents,
-    ...restareas
-  ];
-}
+app.listen(PORT, () => {
+  console.log(`Server listening on ${PORT}`);
+});
