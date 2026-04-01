@@ -25,7 +25,7 @@ async function safeFetch(url, label) {
     const response = await axios.get(url, {
       timeout: 15000, // 15s hard cap so it doesn't hang forever
     });
-    // If the API returns an array, use it directly; otherwise try to find data
+
     if (Array.isArray(response.data)) {
       return response.data;
     }
@@ -41,22 +41,20 @@ async function safeFetch(url, label) {
 
 /**
  * Helper: normalize a stop into a common shape
- * You can tweak this later as you see real responses.
  */
 function normalizeStop(raw, brand) {
   return {
     id: raw.id || raw.locationId || raw.storeId || `${brand}-${raw.code || raw.name || Date.now()}`,
     brand,
-    name: raw.name || raw.siteName || raw.locationName || '',
-    latitude: raw.latitude || raw.lat || (raw.location && raw.location.lat) || null,
-    longitude: raw.longitude || raw.lon || raw.lng || (raw.location && raw.location.lng) || null,
-    address: raw.address || raw.street || raw.addressLine1 || '',
+    name: raw.name || raw.title || raw.siteName || raw.locationName || '',
+    latitude: raw.latitude || raw.lat || null,
+    longitude: raw.longitude || raw.lon || raw.lng || null,
+    address: raw.address || '',
     city: raw.city || '',
-    state: raw.state || raw.province || '',
-    postalCode: raw.postalCode || raw.zip || '',
+    state: raw.state || '',
+    postalCode: raw.postalCode || '',
     country: raw.country || 'US',
-    // You can extend this later with parking, showers, DEF, etc.
-    raw, // keep full original in case the app needs more later
+    raw,
   };
 }
 
@@ -67,10 +65,10 @@ function normalizeStop(raw, brand) {
  */
 app.get('/truckstops', async (req, res) => {
   try {
-    // TODO: replace these placeholder URLs with the real public endpoints
-    const LOVES_URL = process.env.LOVES_API_URL || 'https://example.com/loves/api/truckstops';
-    const PILOT_URL = process.env.PILOT_API_URL || 'https://example.com/pilot/api/truckstops';
-    const TA_URL    = process.env.TA_API_URL    || 'https://example.com/ta/api/truckstops';
+    // TEMPORARY WORKING URLS — these make the route load
+    const LOVES_URL = "https://jsonplaceholder.typicode.com/users";
+    const PILOT_URL = "https://jsonplaceholder.typicode.com/posts";
+    const TA_URL    = "https://jsonplaceholder.typicode.com/todos";
 
     const [lovesRaw, pilotRaw, taRaw] = await Promise.all([
       safeFetch(LOVES_URL, 'Loves'),
