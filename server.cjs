@@ -1,105 +1,119 @@
-// server.js
-// BreakPoint30 live chain truck stops API
-// Mode A: fetch ALL chains on EVERY request (no caching)
-
-const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(cors());
-app.use(express.json());
 
-// Simple health/status route
-app.get('/', (req, res) => {
-  res.json({ status: 'BreakPoint30 API is running' });
+// Root route
+app.get("/", (req, res) => {
+  res.json({ status: "BreakPoint30 API is running" });
 });
 
-/**
- * Helper: safely call an external API and return [] on failure
- */
-async function safeFetch(url, label) {
+// ------------------------------
+// TRUCK STOPS ROUTE
+// ------------------------------
+app.get("/truckstops", async (req, res) => {
   try {
-    const response = await axios.get(url, {
-      timeout: 15000, // 15s hard cap so it doesn't hang forever
-    });
+    let allStops = [];
 
-    if (Array.isArray(response.data)) {
-      return response.data;
-    }
-    if (response.data && Array.isArray(response.data.results)) {
-      return response.data.results;
-    }
-    return [];
-  } catch (err) {
-    console.error(`Error fetching ${label}:`, err.message);
-    return [];
-  }
-}
+    // ----------------------------------------------------
+    // 1. LOVE'S TRUCK STOPS
+    // ----------------------------------------------------
+    const lovesUrl = "https://www.loves.com/api/locations";
+    const lovesResponse = await axios.get(lovesUrl);
+    const lovesData = lovesResponse.data;
 
-/**
- * Helper: normalize a stop into a common shape
- */
-function normalizeStop(raw, brand) {
-  return {
-    id: raw.id || raw.locationId || raw.storeId || `${brand}-${raw.code || raw.name || Date.now()}`,
-    brand,
-    name: raw.name || raw.title || raw.siteName || raw.locationName || '',
-    latitude: raw.latitude || raw.lat || null,
-    longitude: raw.longitude || raw.lon || raw.lng || null,
-    address: raw.address || '',
-    city: raw.city || '',
-    state: raw.state || '',
-    postalCode: raw.postalCode || '',
-    country: raw.country || 'US',
-    raw,
-  };
-}
+    const lovesStops = lovesData.map((stop) => ({
+      id: `loves-${stop.locationId}`,
+      brand: "Loves",
+      name: stop.name || "",
+      latitude: stop.latitude || null,
+      longitude: stop.longitude || null,
+      address: {
+        street: stop.address?.address1 || "",
+        suite: stop.address?.address2 || "",
+        city: stop.address?.city || "",
+        zipcode: stop.address?.postalCode || "",
+      },
+      city: stop.address?.city || "",
+      state: stop.address?.state || "",
+      postalCode: stop.address?.postalCode || "",
+      country: "US",
+      raw: stop
+    }));
 
-/**
- * GET /truckstops
- * Live pull from Love's, Pilot/Flying J, TA/Petro
- * No caching. Every request hits all three.
- */
-app.get('/truckstops', async (req, res) => {
-  try {
-    // TEMPORARY WORKING URLS — these make the route load
-    const LOVES_URL = "https://jsonplaceholder.typicode.com/users";
-    const PILOT_URL = "https://jsonplaceholder.typicode.com/posts";
-    const TA_URL    = "https://jsonplaceholder.typicode.com/todos";
+    allStops = allStops.concat(lovesStops);
 
-    const [lovesRaw, pilotRaw, taRaw] = await Promise.all([
-      safeFetch(LOVES_URL, 'Loves'),
-      safeFetch(PILOT_URL, 'Pilot/Flying J'),
-      safeFetch(TA_URL, 'TA/Petro'),
-    ]);
+    // ----------------------------------------------------
+    // 2. PILOT / FLYING J
+    // ----------------------------------------------------
+    const pilotUrl = "https://www.pilotflyingj.com/api/locations";
+    const pilotResponse = await axios.get(pilotUrl);
+    const pilotData = pilotResponse.data.locations || [];
 
-    const lovesStops = lovesRaw.map(s => normalizeStop(s, 'Loves'));
-    const pilotStops = pilotRaw.map(s => normalizeStop(s, 'Pilot/Flying J'));
-    const taStops    = taRaw.map(s => normalizeStop(s, 'TA/Petro'));
+    const pilotStops = pilotData.map((stop) => ({
+      id: `pilot-${stop.id}`,
+      brand: "Pilot/Flying J",
+      name: stop.name || "",
+      latitude: stop.latitude || null,
+      longitude: stop.longitude || null,
+      address: {
+        street: stop.address1 || "",
+        suite: stop.address2 || "",
+        city: stop.city || "",
+        zipcode: stop.postalCode || "",
+      },
+      city: stop.city || "",
+      state: stop.state || "",
+      postalCode: stop.postalCode || "",
+      country: "US",
+      raw: stop
+    }));
 
-    const combined = [...lovesStops, ...pilotStops, ...taStops];
+    allStops = allStops.concat(pilotStops);
 
-    res.json({
-      source: 'chains-live',
-      count: combined.length,
-      stops: combined,
-    });
-  } catch (err) {
-    console.error('Error in /truckstops:', err.message);
-    res.status(500).json({
-      error: 'Failed to fetch live truck stops',
-    });
+    // ----------------------------------------------------
+    // 3. TA / PETRO
+    // ----------------------------------------------------
+    const taUrl = "https://www.ta-petro.com/api/locations";
+    const taResponse = await axios.get(taUrl);
+    const taData = taResponse.data || [];
+
+    const taStops = taData.map((stop) => ({
+      id: `ta-${stop.locationId}`,
+      brand: stop.brand || "TA/Petro",
+      name: stop.name || "",
+      latitude: stop.latitude || null,
+      longitude: stop.longitude || null,
+      address: {
+        street: stop.address1 || "",
+        suite: stop.address2 || "",
+        city: stop.city || "",
+        zipcode: stop.zip || "",
+      },
+      city: stop.city || "",
+      state: stop.state || "",
+      postalCode: stop.zip || "",
+      country: "US",
+      raw: stop
+    }));
+
+    allStops = allStops.concat(taStops);
+
+    // ----------------------------------------------------
+    // SEND COMBINED DATA
+    // ----------------------------------------------------
+    res.json(allStops);
+
+  } catch (error) {
+    console.error("Truckstop error:", error);
+    res.status(500).json({ error: "Failed to load truck stop data" });
   }
 });
 
-// Fallback for unknown routes
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
-
+// Start server
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`BreakPoint30 API listening on port ${PORT}`);
 });
