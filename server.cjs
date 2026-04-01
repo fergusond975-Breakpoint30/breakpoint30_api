@@ -1,106 +1,87 @@
 import express from "express";
-import fetch from "node-fetch";
 import cors from "cors";
 
 const app = express();
 app.use(cors());
 
-// -----------------------------
-// SMALL REAL FALLBACK LISTS
-// -----------------------------
-
-const fallbackLoves = [
-  { brand: "Loves", name: "Love's Travel Stop", city: "Joplin", state: "MO", lat: 37.0842, lon: -94.5133 },
-  { brand: "Loves", name: "Love's Travel Stop", city: "Seville", state: "OH", lat: 41.0101, lon: -81.8626 },
-  { brand: "Loves", name: "Love's Travel Stop", city: "Barstow", state: "CA", lat: 34.8644, lon: -117.0564 }
+// --------------------------------------
+// PERMANENT TRUCK STOP DATA STRUCTURE
+// --------------------------------------
+// This is where the REAL nationwide list goes.
+// One time only. No manual ongoing updates.
+// Each item = one real truck stop from a trusted source.
+const TRUCK_STOPS = [
+  // EXAMPLE REAL ENTRIES (KEEP ONLY IF THEY'RE TRUE)
+  // { id: "loves-joplin-mo-1", brand: "Loves", name: "Love's Travel Stop", city: "Joplin", state: "MO", lat: 37.0842, lon: -94.5133 },
+  // { id: "pilot-amarillo-tx-1", brand: "Pilot", name: "Pilot Travel Center", city: "Amarillo", state: "TX", lat: 35.221997, lon: -101.831299 },
+  // ...
+  // TODO: Replace this comment with the full nationwide dataset
 ];
 
-const fallbackPilot = [
-  { brand: "Pilot", name: "Pilot Travel Center", city: "Knoxville", state: "TN", lat: 35.9606, lon: -83.9207 },
-  { brand: "Pilot", name: "Flying J Travel Center", city: "Salt Lake City", state: "UT", lat: 40.7608, lon: -111.8910 },
-  { brand: "Pilot", name: "Pilot Travel Center", city: "Amarillo", state: "TX", lat: 35.221997, lon: -101.831299 }
-];
-
-const fallbackTA = [
-  { brand: "TA", name: "TA Travel Center", city: "Wheat Ridge", state: "CO", lat: 39.7661, lon: -105.0772 },
-  { brand: "Petro", name: "Petro Stopping Center", city: "Kingman", state: "AZ", lat: 35.1894, lon: -114.0530 },
-  { brand: "TA", name: "TA Express", city: "Grand Island", state: "NE", lat: 40.9264, lon: -98.3420 }
-];
-
-// -----------------------------
-// SAFE FETCH WRAPPER
-// -----------------------------
-async function safeFetch(url) {
-  try {
-    const res = await fetch(url, { timeout: 8000 });
-    if (!res.ok) throw new Error("Bad response");
-    return await res.json();
-  } catch {
-    return null;
-  }
+// --------------------------------------
+// HELPER: HAVERSINE DISTANCE (MILES)
+// --------------------------------------
+function toRad(deg) {
+  return (deg * Math.PI) / 180;
 }
 
-// -----------------------------
-// TRUCK STOP ROUTE
-// -----------------------------
-app.get("/truckstops", async (req, res) => {
-  let allStops = [];
+function distanceMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // Earth radius in miles
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
-  // -----------------------------
-  // 1. LOVE'S REAL-TIME
-  // -----------------------------
-  const lovesData = await safeFetch("https://www.loves.com/api/locations");
+// --------------------------------------
+// /truckstops — NEAREST STOPS BY LOCATION
+// --------------------------------------
+// Query params:
+//   ?lat=...&lon=...&radius=50&limit=20
+app.get("/truckstops", (req, res) => {
+  const { lat, lon, radius = 50, limit = 20 } = req.query;
 
-  if (lovesData && Array.isArray(lovesData)) {
-    const mapped = lovesData.slice(0, 20).map((loc) => ({
-      brand: "Loves",
-      name: loc.Name || "Love's Travel Stop",
-      city: loc.City,
-      state: loc.State,
-      lat: loc.Latitude,
-      lon: loc.Longitude
-    }));
-    allStops.push(...mapped);
-  } else {
-    allStops.push(...fallbackLoves);
+  if (!lat || !lon) {
+    return res.status(400).json({ error: "lat and lon are required query parameters" });
   }
 
-  // -----------------------------
-  // 2. PILOT REAL-TIME
-  // -----------------------------
-  const pilotData = await safeFetch("https://www.pilotflyingj.com/api/locations");
+  const userLat = parseFloat(lat);
+  const userLon = parseFloat(lon);
+  const maxRadius = parseFloat(radius);
+  const maxResults = parseInt(limit, 10);
 
-  if (pilotData && Array.isArray(pilotData)) {
-    const mapped = pilotData.slice(0, 20).map((loc) => ({
-      brand: "Pilot",
-      name: loc.name || "Pilot Travel Center",
-      city: loc.city,
-      state: loc.state,
-      lat: loc.latitude,
-      lon: loc.longitude
-    }));
-    allStops.push(...mapped);
-  } else {
-    allStops.push(...fallbackPilot);
+  if (TRUCK_STOPS.length === 0) {
+    return res.status(503).json({
+      error: "Truck stop dataset not loaded",
+      message: "Backend is ready, but nationwide stop list has not been populated yet."
+    });
   }
 
-  // -----------------------------
-  // 3. TA / PETRO (FALLBACK ONLY)
-  // -----------------------------
-  allStops.push(...fallbackTA);
+  const withDistance = TRUCK_STOPS.map((stop) => {
+    const dist = distanceMiles(userLat, userLon, stop.lat, stop.lon);
+    return { ...stop, distanceMiles: dist };
+  });
 
-  // -----------------------------
-  // RETURN CLEAN LIST
-  // -----------------------------
-  res.json(allStops);
+  const nearby = withDistance
+    .filter((s) => s.distanceMiles <= maxRadius)
+    .sort((a, b) => a.distanceMiles - b.distanceMiles)
+    .slice(0, maxResults);
+
+  res.json(nearby);
 });
 
-// -----------------------------
+// --------------------------------------
 app.get("/", (req, res) => {
-  res.json({ status: "BreakPoint30 API is running" });
+  res.json({ status: "BreakPoint30 API is running", stopsLoaded: TRUCK_STOPS.length });
 });
 
-// -----------------------------
+// --------------------------------------
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`BreakPoint30 API running on port ${PORT}`);
