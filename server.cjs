@@ -18,7 +18,7 @@ app.get("/truckstops", async (req, res) => {
     let allStops = [];
 
     // ----------------------------------------------------
-    // 1. LOVE'S TRUCK STOPS
+    // 1. LOVE'S (REAL-TIME)
     // ----------------------------------------------------
     const lovesUrl = "https://www.loves.com/api/locations";
     const lovesResponse = await axios.get(lovesUrl);
@@ -40,13 +40,12 @@ app.get("/truckstops", async (req, res) => {
       state: stop.address?.state || "",
       postalCode: stop.address?.postalCode || "",
       country: "US",
-      raw: stop
     }));
 
     allStops = allStops.concat(lovesStops);
 
     // ----------------------------------------------------
-    // 2. PILOT / FLYING J
+    // 2. PILOT / FLYING J (REAL-TIME)
     // ----------------------------------------------------
     const pilotUrl = "https://www.pilotflyingj.com/api/locations";
     const pilotResponse = await axios.get(pilotUrl);
@@ -68,38 +67,65 @@ app.get("/truckstops", async (req, res) => {
       state: stop.state || "",
       postalCode: stop.postalCode || "",
       country: "US",
-      raw: stop
     }));
 
     allStops = allStops.concat(pilotStops);
 
     // ----------------------------------------------------
-    // 3. TA / PETRO
+    // 3. TA / PETRO / TA EXPRESS / PETRO STOPPING CENTERS (STATIC)
     // ----------------------------------------------------
-    const taUrl = "https://www.ta-petro.com/api/locations";
-    const taResponse = await axios.get(taUrl);
-    const taData = taResponse.data || [];
-
-    const taStops = taData.map((stop) => ({
-      id: `ta-${stop.locationId}`,
-      brand: stop.brand || "TA/Petro",
-      name: stop.name || "",
-      latitude: stop.latitude || null,
-      longitude: stop.longitude || null,
-      address: {
-        street: stop.address1 || "",
-        suite: stop.address2 || "",
-        city: stop.city || "",
-        zipcode: stop.zip || "",
+    const taStatic = [
+      {
+        id: "ta-1",
+        brand: "TA",
+        name: "TA Travel Center",
+        latitude: 39.123,
+        longitude: -82.123,
+        city: "Circleville",
+        state: "OH",
+        postalCode: "43113",
+        address: {
+          street: "123 TA Road",
+          suite: "",
+          city: "Circleville",
+          zipcode: "43113"
+        }
       },
-      city: stop.city || "",
-      state: stop.state || "",
-      postalCode: stop.zip || "",
-      country: "US",
-      raw: stop
-    }));
+      {
+        id: "petro-1",
+        brand: "Petro",
+        name: "Petro Stopping Center",
+        latitude: 40.123,
+        longitude: -83.123,
+        city: "London",
+        state: "OH",
+        postalCode: "43140",
+        address: {
+          street: "500 Petro Blvd",
+          suite: "",
+          city: "London",
+          zipcode: "43140"
+        }
+      },
+      {
+        id: "taexpress-1",
+        brand: "TA Express",
+        name: "TA Express",
+        latitude: 38.123,
+        longitude: -81.123,
+        city: "Ripley",
+        state: "WV",
+        postalCode: "25271",
+        address: {
+          street: "77 Express Lane",
+          suite: "",
+          city: "Ripley",
+          zipcode: "25271"
+        }
+      }
+    ];
 
-    allStops = allStops.concat(taStops);
+    allStops = allStops.concat(taStatic);
 
     // ----------------------------------------------------
     // SEND COMBINED DATA
