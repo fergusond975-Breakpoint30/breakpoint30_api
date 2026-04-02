@@ -13,37 +13,34 @@ function safeArray(arr) {
 }
 
 // -------------------------------
-// Love's Scraper (POST Search Endpoint - WORKING)
+// Love's Scraper (ArcGIS Endpoint - WORKING)
 // -------------------------------
 async function fetchLoves() {
   try {
-    const url = "https://www.loves.com/api/locations/search";
+    const url =
+      "https://services.arcgis.com/8DAUcrpQcpyLMznu/ArcGIS/rest/services/Loves_Locations/FeatureServer/0/query";
 
-    const response = await axios.post(
-      url,
-      {
-        page: 1,
-        pageSize: 5000,   // get ALL locations
-        filters: {}
+    const response = await axios.get(url, {
+      params: {
+        where: "1=1",
+        outFields: "*",
+        f: "json",
       },
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Content-Type": "application/json"
-        }
-      }
-    );
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+    });
 
-    const locations = response.data?.results || [];
+    const features = response.data?.features || [];
 
-    const stops = locations.map((loc) => ({
+    const stops = features.map((f) => ({
       brand: "Loves",
-      name: loc.name || "",
-      address: loc.address1 || "",
-      city: loc.city || "",
-      state: loc.state || "",
-      lat: loc.latitude || null,
-      lng: loc.longitude || null,
+      name: f.attributes?.Name || "",
+      address: f.attributes?.Address || "",
+      city: f.attributes?.City || "",
+      state: f.attributes?.State || "",
+      lat: f.geometry?.y || null,
+      lng: f.geometry?.x || null,
     }));
 
     return safeArray(stops);
