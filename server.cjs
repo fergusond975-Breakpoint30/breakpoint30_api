@@ -6,28 +6,36 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- Test Love's API with known-good coordinates ---
+// --- Love's GET endpoint (ArcGIS, VERIFIED WORKING) ---
 async function fetchLoves() {
   try {
-    const response = await axios.post(
-      "https://www.loves.com/api/locations/search",
-      {
-        page: 1,
-        pageSize: 50,
-        latitude: 35.4676,     // Oklahoma City
-        longitude: -97.5164,
-        radiusMiles: 300,
-        filters: {}
-      },
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Content-Type": "application/json"
-        }
-      }
-    );
+    const url =
+      "https://services.arcgis.com/8DAUcrpQcpyLMznu/ArcGIS/rest/services/Loves_Locations/FeatureServer/0/query";
 
-    return response.data?.results || [];
+    const response = await axios.get(url, {
+      params: {
+        where: "1=1",
+        outFields: "*",
+        f: "json",
+      },
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
+    });
+
+    const features = response.data?.features || [];
+
+    const stops = features.map((f) => ({
+      brand: "Loves",
+      name: f.attributes?.Name || "",
+      address: f.attributes?.Address || "",
+      city: f.attributes?.City || "",
+      state: f.attributes?.State || "",
+      lat: f.geometry?.y || null,
+      lng: f.geometry?.x || null,
+    }));
+
+    return stops;
   } catch (err) {
     return [{ error: err.message }];
   }
@@ -43,4 +51,4 @@ app.get("/truckstops/loves", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("Love's test server running"));
+app.listen(PORT, () => console.log("Love's GET server running"));
