@@ -1,8 +1,10 @@
 /**
  * chains.cjs
  * BreakPoint30 – Real Chain Integration Framework
- * Structure only – scraping logic added next
+ * Love's scraper integrated
  */
+
+const { fetchLovesStores } = require('./lovesScraper.cjs');
 
 module.exports = {
   chains: {
@@ -10,42 +12,34 @@ module.exports = {
       name: "Love's",
       enabled: true,
       fetchMethod: "scrape",
-      urlPattern: "https://www.loves.com/en/locations/{storeId}",
-      parser: "parseLoves",
+      parser: "loves",
     },
 
     pilot: {
       name: "Pilot / Flying J",
-      enabled: true,
+      enabled: false,
       fetchMethod: "scrape",
-      urlPattern: "https://www.pilotflyingj.com/locations/{storeId}",
-      parser: "parsePilot",
+      parser: "pilot",
     },
 
     ta: {
       name: "TA / Petro",
-      enabled: true,
+      enabled: false,
       fetchMethod: "scrape",
-      urlPattern: "https://www.ta-petro.com/location/{storeId}",
-      parser: "parseTA",
+      parser: "ta",
     },
   },
 
   /**
-   * Placeholder functions – real scraping logic added next.
-   * These return empty arrays so your server stays stable.
+   * Real Love's integration
+   * Pilot/FJ and TA/Petro will be added next
    */
-
   async getLiveChainData() {
+    const lovesData = await fetchLovesStores([1, 2, 3]); // sample store IDs for now
     return {
-      loves: [],
+      loves: lovesData,
       pilot: [],
       ta: [],
     };
   },
-
-  // Parsers will be added in the next step
-  parseLoves(html) { return []; },
-  parsePilot(html) { return []; },
-  parseTA(html) { return []; },
 };
