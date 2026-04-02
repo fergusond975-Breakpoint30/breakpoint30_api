@@ -159,6 +159,86 @@
       "state": "ID",
       "lat": 43.5407,
       "lng": -116.5635
+    },
+    {
+      "id": 21,
+      "name": "Love's Travel Stop",
+      "city": "Billings",
+      "state": "MT",
+      "lat": 45.7833,
+      "lng": -108.5007
+    },
+    {
+      "id": 22,
+      "name": "Love's Travel Stop",
+      "city": "Missoula",
+      "state": "MT",
+      "lat": 46.8721,
+      "lng": -113.9940
+    },
+    {
+      "id": 23,
+      "name": "Love's Travel Stop",
+      "city": "Bozeman",
+      "state": "MT",
+      "lat": 45.6770,
+      "lng": -111.0429
+    },
+    {
+      "id": 24,
+      "name": "Love's Travel Stop",
+      "city": "Great Falls",
+      "state": "MT",
+      "lat": 47.5053,
+      "lng": -111.3008
+    },
+    {
+      "id": 25,
+      "name": "Love's Travel Stop",
+      "city": "Helena",
+      "state": "MT",
+      "lat": 46.5884,
+      "lng": -112.0245
+    },
+    {
+      "id": 26,
+      "name": "Love's Travel Stop",
+      "city": "Butte",
+      "state": "MT",
+      "lat": 45.9960,
+      "lng": -112.5330
+    },
+    {
+      "id": 27,
+      "name": "Love's Travel Stop",
+      "city": "Kalispell",
+      "state": "MT",
+      "lat": 48.1958,
+      "lng": -114.3120
+    },
+    {
+      "id": 28,
+      "name": "Love's Travel Stop",
+      "city": "Havre",
+      "state": "MT",
+      "lat": 48.5530,
+      "lng": -109.6841
+    },
+    {
+      "id": 29,
+      "name": "Love's Travel Stop",
+      "city": "Miles City",
+      "state": "MT",
+      "lat": 46.4083,
+      "lng": -105.8406
+    },
+    {
+      "id": 30,
+      "name": "Love's Travel Stop",
+      "city": "Glendive",
+      "state": "MT",
+      "lat": 47.1050,
+      "lng": -104.7127
     }
   ]
 }
