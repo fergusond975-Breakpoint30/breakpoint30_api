@@ -25,7 +25,6 @@ const loves = loadJSON("loves.json");
 const pilotfj = loadJSON("pilotfj.json");
 const tapetro = loadJSON("tapetro.json");
 
-// Merge all chain stops
 const allStops = [...loves, ...pilotfj, ...tapetro];
 
 console.log(`Loaded ${allStops.length} total truck stops (Love's + Pilot/FJ + TA/Petro)`);
