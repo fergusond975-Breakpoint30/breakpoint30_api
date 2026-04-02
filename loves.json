@@ -1,0 +1,20 @@
+[
+  {
+    "brand": "Loves",
+    "name": "Love's Travel Stop #1",
+    "address": "845 SE 89th St",
+    "city": "Oklahoma City",
+    "state": "OK",
+    "lat": 35.3772,
+    "lng": -97.5033
+  },
+  {
+    "brand": "Loves",
+    "name": "Love's Travel Stop #2",
+    "address": "1501 N Broadway Ave",
+    "city": "Oklahoma City",
+    "state": "OK",
+    "lat": 35.4851,
+    "lng": -97.5145
+  }
+]
