@@ -1,4 +1,3 @@
-
 {
   "loves": [
     {
@@ -80,6 +79,86 @@
       "state": "UT",
       "lat": 40.5308,
       "lng": -112.2983
+    },
+    {
+      "id": 11,
+      "name": "Love's Travel Stop",
+      "city": "Boise",
+      "state": "ID",
+      "lat": 43.6187,
+      "lng": -116.2146
+    },
+    {
+      "id": 12,
+      "name": "Love's Travel Stop",
+      "city": "Twin Falls",
+      "state": "ID",
+      "lat": 42.5629,
+      "lng": -114.4609
+    },
+    {
+      "id": 13,
+      "name": "Love's Travel Stop",
+      "city": "Idaho Falls",
+      "state": "ID",
+      "lat": 43.4917,
+      "lng": -112.0333
+    },
+    {
+      "id": 14,
+      "name": "Love's Travel Stop",
+      "city": "Pocatello",
+      "state": "ID",
+      "lat": 42.8713,
+      "lng": -112.4455
+    },
+    {
+      "id": 15,
+      "name": "Love's Travel Stop",
+      "city": "Mountain Home",
+      "state": "ID",
+      "lat": 43.1321,
+      "lng": -115.6912
+    },
+    {
+      "id": 16,
+      "name": "Love's Travel Stop",
+      "city": "Blackfoot",
+      "state": "ID",
+      "lat": 43.1905,
+      "lng": -112.3447
+    },
+    {
+      "id": 17,
+      "name": "Love's Travel Stop",
+      "city": "Jerome",
+      "state": "ID",
+      "lat": 42.7241,
+      "lng": -114.5186
+    },
+    {
+      "id": 18,
+      "name": "Love's Travel Stop",
+      "city": "Burley",
+      "state": "ID",
+      "lat": 42.5357,
+      "lng": -113.7927
+    },
+    {
+      "id": 19,
+      "name": "Love's Travel Stop",
+      "city": "Rexburg",
+      "state": "ID",
+      "lat": 43.8260,
+      "lng": -111.7897
+    },
+    {
+      "id": 20,
+      "name": "Love's Travel Stop",
+      "city": "Nampa",
+      "state": "ID",
+      "lat": 43.5407,
+      "lng": -116.5635
     }
   ]
 }
