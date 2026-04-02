@@ -2,8 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 // Load nationwide truck stops from stops.js
-const TRUCK_STOPS = require("./stops.js");
-
+const TRUCK_STOPS = [];
 const app = express();
 app.use(cors());
 
