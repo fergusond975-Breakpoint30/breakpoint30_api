@@ -1,10 +1,10 @@
 /**
  * chains.cjs
  * BreakPoint30 – Real Chain Integration Framework
- * Love's scraper integrated
+ * Safe for Render deployment (no top-level scraper imports)
  */
 
-const { fetchLovesStores } = require('./lovesScraper.cjs');
+let fetchLovesStores = null;
 
 module.exports = {
   chains: {
@@ -32,10 +32,17 @@ module.exports = {
 
   /**
    * Real Love's integration
-   * Pilot/FJ and TA/Petro will be added next
+   * Pilot/FJ and TA/Petro added later
    */
   async getLiveChainData() {
-    const lovesData = await fetchLovesStores([1, 2, 3]); // sample store IDs for now
+    // Lazy-load scraper ONLY when endpoint is called
+    if (!fetchLovesStores) {
+      fetchLovesStores = require('./lovesScraper.cjs').fetchLovesStores;
+    }
+
+    // Temporary sample IDs until real integration
+    const lovesData = await fetchLovesStores([1, 2, 3]);
+
     return {
       loves: lovesData,
       pilot: [],
