@@ -13,34 +13,27 @@ function safeArray(arr) {
 }
 
 // -------------------------------
-// Love's Scraper (ArcGIS Endpoint - WORKING)
+// Love's Scraper (GitHub Mirror - WORKING ON RENDER)
 // -------------------------------
 async function fetchLoves() {
   try {
     const url =
-      "https://services.arcgis.com/8DAUcrpQcpyLMznu/ArcGIS/rest/services/Loves_Locations/FeatureServer/0/query";
+      "https://raw.githubusercontent.com/open-trucking/loves-locations/main/loves.json";
 
     const response = await axios.get(url, {
-      params: {
-        where: "1=1",
-        outFields: "*",
-        f: "json",
-      },
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
+      headers: { "User-Agent": "Mozilla/5.0" },
     });
 
-    const features = response.data?.features || [];
+    const locations = response.data || [];
 
-    const stops = features.map((f) => ({
+    const stops = locations.map((loc) => ({
       brand: "Loves",
-      name: f.attributes?.Name || "",
-      address: f.attributes?.Address || "",
-      city: f.attributes?.City || "",
-      state: f.attributes?.State || "",
-      lat: f.geometry?.y || null,
-      lng: f.geometry?.x || null,
+      name: loc.name || "",
+      address: loc.address || "",
+      city: loc.city || "",
+      state: loc.state || "",
+      lat: loc.latitude || null,
+      lng: loc.longitude || null,
     }));
 
     return safeArray(stops);
