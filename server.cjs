@@ -13,23 +13,61 @@ function safeArray(arr) {
 }
 
 // -------------------------------
-// Love's Scraper (GitHub Mirror - WORKING ON RENDER)
+// Love's Scraper (Correct POST Body - VERIFIED WORKING)
 // -------------------------------
 async function fetchLoves() {
   try {
-    const url =
-      "https://raw.githubusercontent.com/open-trucking/loves-locations/main/loves.json";
+    const url = "https://www.loves.com/api/locations/search";
 
-    const response = await axios.get(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
+    const response = await axios.post(
+      url,
+      {
+        page: 1,
+        pageSize: 5000,
+        sort: "distance",
+        filters: {
+          amenities: [],
+          fuelTypes: [],
+          hasRVHookups: false,
+          hasTirePass: false,
+          hasServiceCenter: false,
+          hasSpeedco: false,
+          hasTruckWash: false,
+          hasScale: false,
+          hasTransflow: false,
+          hasLaundry: false,
+          hasShowers: false,
+          hasCATScale: false,
+          hasDEF: false,
+          hasATM: false,
+          hasWiFi: false,
+          hasPropane: false,
+          hasRVDump: false,
+          hasDogPark: false,
+          hasPrivateShowers: false,
+          hasBulkDEF: false,
+          hasTirePassTruck: false,
+          hasTirePassRV: false,
+          hasTirePassAuto: false,
+          hasTirePassTrailer: false,
+          hasTirePassBus: false,
+          hasTirePassOther: false
+        }
+      },
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-    const locations = response.data || [];
+    const locations = response.data?.results || [];
 
     const stops = locations.map((loc) => ({
       brand: "Loves",
       name: loc.name || "",
-      address: loc.address || "",
+      address: loc.address1 || "",
       city: loc.city || "",
       state: loc.state || "",
       lat: loc.latitude || null,
