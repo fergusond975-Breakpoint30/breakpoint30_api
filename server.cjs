@@ -1,15 +1,30 @@
+// ===============================
+// BreakPoint30 API Server (server.cjs)
+// Clean, Render-safe, cockpit-grade
+// ===============================
+
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+const cheerio = require("cheerio");
+
+// Safe array helper
+function safeArray(arr) {
+  return Array.isArray(arr) ? arr : [];
+}
+
+// -------------------------------
+// Love's Scraper
+// -------------------------------
 async function fetchLoves() {
   try {
     const url = "https://www.loves.com/en/locations";
 
     const response = await axios.get(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
+      headers: { "User-Agent": "Mozilla/5.0" },
     });
 
     const html = response.data;
-    const cheerio = require("cheerio");
     const $ = cheerio.load(html);
 
     const stops = [];
@@ -35,7 +50,34 @@ async function fetchLoves() {
 
     return safeArray(stops);
   } catch (err) {
-    console.error("Loves scraper failed:", err.message);
+    console.error("Love's scraper failed:", err.message);
     return [];
   }
 }
+
+// -------------------------------
+// Express App
+// -------------------------------
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Test route
+app.get("/", (req, res) => {
+  res.json({ status: "BreakPoint30 API is running" });
+});
+
+// Love's route
+app.get("/truckstops/loves", async (req, res) => {
+  const data = await fetchLoves();
+  res.json(data);
+});
+
+// -------------------------------
+// Port Binding (Render REQUIRED)
+// -------------------------------
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log(`BreakPoint30 API running on port ${PORT}`);
+});
