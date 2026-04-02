@@ -14,7 +14,7 @@ function safeArray(arr) {
 }
 
 // -------------------------------
-// Love's Scraper
+// Love's Scraper (Quick Fix Version)
 // -------------------------------
 async function fetchLoves() {
   try {
@@ -29,11 +29,13 @@ async function fetchLoves() {
 
     const stops = [];
 
-    $(".location-result").each((i, el) => {
-      const name = $(el).find(".location-result__title").text().trim();
-      const address = $(el).find(".location-result__address").text().trim();
-      const city = $(el).find(".location-result__city").text().trim();
-      const state = $(el).find(".location-result__state").text().trim();
+    // Updated selector for 2024–2025 Love's layout
+    $(".location-result-item").each((i, el) => {
+      const name = $(el).find(".location-result-item__title").text().trim();
+      const address = $(el).find(".location-result-item__address").text().trim();
+      const city = $(el).find(".location-result-item__city").text().trim();
+      const state = $(el).find(".location-result-item__state").text().trim();
+
       const lat = $(el).attr("data-lat");
       const lng = $(el).attr("data-lng");
 
@@ -62,7 +64,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Test route
+// Root test route
 app.get("/", (req, res) => {
   res.json({ status: "BreakPoint30 API is running" });
 });
