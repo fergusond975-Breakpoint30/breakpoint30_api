@@ -6,7 +6,6 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
-const cheerio = require("cheerio");
 
 // Safe array helper
 function safeArray(arr) {
@@ -14,29 +13,17 @@ function safeArray(arr) {
 }
 
 // -------------------------------
-// Love's Scraper (JSON Extraction)
+// Love's Scraper (Stable JSON Feed)
 // -------------------------------
 async function fetchLoves() {
   try {
-    const url = "https://www.loves.com/en/locations";
+    const url = "https://www.loves.com/api/locations";
 
     const response = await axios.get(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
 
-    const html = response.data;
-
-    // Love's embeds JSON inside a script tag
-    const jsonMatch = html.match(/window\.__INITIAL_STATE__ = ({.*});/);
-
-    if (!jsonMatch) {
-      console.error("Could not find embedded Love's JSON");
-      return [];
-    }
-
-    const json = JSON.parse(jsonMatch[1]);
-
-    const locations = json?.locations?.locationResults || [];
+    const locations = response.data?.locations || [];
 
     const stops = locations.map((loc) => ({
       brand: "Loves",
