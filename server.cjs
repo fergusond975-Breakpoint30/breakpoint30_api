@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 
-// Load nationwide truck stops from stops.js
+// Load nationwide truck stops (currently empty until dataset is added)
 const TRUCK_STOPS = [];
+
 const app = express();
 app.use(cors());
 
