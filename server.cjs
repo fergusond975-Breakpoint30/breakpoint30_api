@@ -13,17 +13,28 @@ function safeArray(arr) {
 }
 
 // -------------------------------
-// Love's Scraper (Stable JSON Feed)
+// Love's Scraper (POST Search Endpoint - WORKING)
 // -------------------------------
 async function fetchLoves() {
   try {
-    const url = "https://www.loves.com/api/locations";
+    const url = "https://www.loves.com/api/locations/search";
 
-    const response = await axios.get(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
+    const response = await axios.post(
+      url,
+      {
+        page: 1,
+        pageSize: 5000,   // get ALL locations
+        filters: {}
+      },
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-    const locations = response.data?.locations || [];
+    const locations = response.data?.results || [];
 
     const stops = locations.map((loc) => ({
       brand: "Loves",
