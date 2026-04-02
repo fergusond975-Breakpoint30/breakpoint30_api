@@ -1,52 +1,83 @@
+// server.cjs
+// BreakPoint30 backend — live data with safety nets
+
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
+const axios = require("axios");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Load JSON helper
-function loadJSON(filename) {
+// ---- SAFETY WRAPPER ----
+// Ensures we never crash if a scraper fails or returns bad data
+function safeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+// ---- SCRAPERS ----
+// These should be your real scrapers. If one fails, server stays alive.
+
+async function fetchLoves() {
   try {
-    const filePath = path.resolve(__dirname, "data", filename);
-    const raw = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(raw);
+    const res = await axios.get("https://your-loves-endpoint-or-scraper");
+    return safeArray(res.data);
   } catch (err) {
-    console.error(`Error loading ${filename}:`, err.message);
+    console.error("Loves scraper failed:", err.message);
     return [];
   }
 }
 
-// Load real datasets
-const loves = loadJSON("loves.json");
-const pilotfj = loadJSON("pilotfj.json");
-const tapetro = loadJSON("tapetro.json");
-const independents = loadJSON("independents.json");
-const restareas = loadJSON("restareas.json");
-const nationwide = loadJSON("nationwide.json");
+async function fetchPilot() {
+  try {
+    const res = await axios.get("https://your-pilot-endpoint-or-scraper");
+    return safeArray(res.data);
+  } catch (err) {
+    console.error("Pilot scraper failed:", err.message);
+    return [];
+  }
+}
 
-const allStops = [
-  ...loves,
-  ...pilotfj,
-  ...tapetro,
-  ...independents,
-  ...restareas,
-  ...nationwide
-];
+async function fetchTA() {
+  try {
+    const res = await axios.get("https://your-ta-endpoint-or-scraper");
+    return safeArray(res.data);
+  } catch (err) {
+    console.error("TA scraper failed:", err.message);
+    return [];
+  }
+}
 
-// Routes
+// ---- ROUTES ----
+
 app.get("/", (req, res) => {
-  res.json({ status: "BreakPoint30 API is running" });
+  res.send("BreakPoint30 backend is running");
 });
 
-app.get("/truckstops", (req, res) => {
-  res.json(allStops);
+app.get("/truckstops", async (req, res) => {
+  try {
+    const [loves, pilot, ta] = await Promise.all([
+      fetchLoves(),
+      fetchPilot(),
+      fetchTA(),
+    ]);
+
+    const combined = [
+      ...safeArray(loves),
+      ...safeArray(pilot),
+      ...safeArray(ta),
+    ];
+
+    res.json(combined);
+  } catch (err) {
+    console.error("Truckstops route failed:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
-// Start server
+// ---- START SERVER ----
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`BreakPoint30 API running on port ${PORT}`);
+  console.log(`BreakPoint30 backend running on port ${PORT}`);
 });
