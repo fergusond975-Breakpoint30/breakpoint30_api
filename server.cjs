@@ -1,109 +1,94 @@
 // ===============================
 // BreakPoint30 API Server (server.cjs)
-// Clean, Render-safe, cockpit-grade
 // ===============================
 
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
 
-// Safe array helper
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Helper
 function safeArray(arr) {
   return Array.isArray(arr) ? arr : [];
 }
 
 // -------------------------------
-// Love's Scraper (Correct POST Body - VERIFIED WORKING)
+// Love's Scraper (Nationwide Grid Scan)
 // -------------------------------
 async function fetchLoves() {
-  try {
-    const url = "https://www.loves.com/api/locations/search";
+  const gridPoints = [
+    { lat: 40.0, lng: -100.0 },
+    { lat: 35.0, lng: -90.0 },
+    { lat: 45.0, lng: -110.0 },
+    { lat: 30.0, lng: -95.0 },
+    { lat: 42.0, lng: -85.0 },
+  ];
 
-    const response = await axios.post(
-      url,
-      {
-        page: 1,
-        pageSize: 5000,
-        sort: "distance",
-        filters: {
-          amenities: [],
-          fuelTypes: [],
-          hasRVHookups: false,
-          hasTirePass: false,
-          hasServiceCenter: false,
-          hasSpeedco: false,
-          hasTruckWash: false,
-          hasScale: false,
-          hasTransflow: false,
-          hasLaundry: false,
-          hasShowers: false,
-          hasCATScale: false,
-          hasDEF: false,
-          hasATM: false,
-          hasWiFi: false,
-          hasPropane: false,
-          hasRVDump: false,
-          hasDogPark: false,
-          hasPrivateShowers: false,
-          hasBulkDEF: false,
-          hasTirePassTruck: false,
-          hasTirePassRV: false,
-          hasTirePassAuto: false,
-          hasTirePassTrailer: false,
-          hasTirePassBus: false,
-          hasTirePassOther: false
+  let all = [];
+
+  for (const point of gridPoints) {
+    try {
+      const response = await axios.post(
+        "https://www.loves.com/api/locations/search",
+        {
+          page: 1,
+          pageSize: 5000,
+          latitude: point.lat,
+          longitude: point.lng,
+          radiusMiles: 500,
+          filters: {},
+        },
+        {
+          headers: {
+            "User-Agent": "Mozilla/5.0",
+            "Content-Type": "application/json",
+          },
         }
-      },
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          "Content-Type": "application/json"
-        }
-      }
-    );
+      );
 
-    const locations = response.data?.results || [];
-
-    const stops = locations.map((loc) => ({
-      brand: "Loves",
-      name: loc.name || "",
-      address: loc.address1 || "",
-      city: loc.city || "",
-      state: loc.state || "",
-      lat: loc.latitude || null,
-      lng: loc.longitude || null,
-    }));
-
-    return safeArray(stops);
-  } catch (err) {
-    console.error("Love's scraper failed:", err.message);
-    return [];
+      const results = response.data?.results || [];
+      all.push(...results);
+    } catch (err) {
+      console.error("Love's scan failed:", err.message);
+    }
   }
+
+  // Deduplicate by store number
+  const unique = {};
+  for (const loc of all) {
+    unique[loc.storeNumber] = loc;
+  }
+
+  const final = Object.values(unique).map((loc) => ({
+    brand: "Loves",
+    name: loc.name || "",
+    address: loc.address1 || "",
+    city: loc.city || "",
+    state: loc.state || "",
+    lat: loc.latitude || null,
+    lng: loc.longitude || null,
+  }));
+
+  return safeArray(final);
 }
 
 // -------------------------------
-// Express App
+// Routes
 // -------------------------------
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Root test route
 app.get("/", (req, res) => {
   res.json({ status: "BreakPoint30 API is running" });
 });
 
-// Love's route
 app.get("/truckstops/loves", async (req, res) => {
   const data = await fetchLoves();
   res.json(data);
 });
 
 // -------------------------------
-// Port Binding (Render REQUIRED)
+// Port Binding
 // -------------------------------
 const PORT = process.env.PORT || 10000;
-
-app.listen(PORT, () => {
-  console.log(`BreakPoint30 API running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`BreakPoint30 API running on port ${PORT}`));
